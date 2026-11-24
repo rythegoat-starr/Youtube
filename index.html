@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YouTube Studio</title>
+<style>
+:root{--bg:#0f0f0f;--panel:#181818;--line:#303030;--text:#f1f1f1;--muted:#aaa;--red:#f03}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.top{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;gap:18px;position:sticky;top:0;background:#0f0f0f;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font-weight:bold;font-size:19px;white-space:nowrap}
+.logo{background:#f03;border-radius:7px;width:30px;height:21px;display:grid;place-items:center}
+.search{margin:auto;display:flex;width:min(480px,45vw);background:#121212;border:1px solid #444;border-radius:25px;overflow:hidden}
+.search input{background:transparent;color:white;border:0;padding:10px 15px;width:100%;outline:none}
+.search button{background:#292929;color:white;border:0;padding:0 17px}
+.avatar{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;color:white;font-weight:bold;flex-shrink:0}
+.layout{display:flex;min-height:calc(100vh - 62px)}
+.sidebar{width:225px;padding:17px 12px;border-right:1px solid var(--line);flex-shrink:0}
+.sideitem{display:flex;align-items:center;gap:16px;padding:12px 15px;border-radius:9px;cursor:pointer;font-size:14px;color:#ddd;margin-bottom:4px}
+.sideitem:hover,.sideitem.active{background:#303030;color:white}
+.sideitem svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}
+.sideheading{font-size:11px;color:#888;padding:17px 15px 8px}
+.main{padding:28px 30px;width:100%;max-width:1500px;overflow:hidden}
+h1{font-size:25px;margin:0 0 24px}
+h2{font-size:19px;margin:22px 0 14px}
+.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.stat,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.stat .label{font-size:13px;color:#aaa}
+.stat .number{font-size:26px;font-weight:bold;margin-top:12px;overflow-wrap:anywhere}
+.stat .sub{font-size:12px;color:#999;margin-top:7px}
+.panel{margin-top:18px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}
+.btn{border:0;border-radius:22px;padding:10px 16px;background:#303030;color:white}
+.btn:hover{background:#454545}
+.btn.red{background:#f03}
+.btn.small{font-size:12px;padding:7px 12px}
+input,select,textarea{background:#111;color:white;border:1px solid #444;border-radius:8px;padding:10px}
+.toolbar input{min-width:180px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:750px}
+th,td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:#aaa;font-weight:normal}
+.video{display:flex;align-items:center;gap:11px;min-width:235px}
+.thumb{width:116px;height:66px;border-radius:7px;flex-shrink:0;position:relative;overflow:hidden;display:grid;place-items:center;text-align:center;color:white;background:#333}
+.thumb:before{content:"";position:absolute;inset:0;background:linear-gradient(130deg,transparent 20%,#ffffff20 50%,transparent 75%)}
+.thumb .gameword{font-size:12px;font-weight:900;text-shadow:0 2px 5px #000;z-index:1;padding:4px}
+.thumb .pfp{position:absolute;bottom:4px;left:4px;width:21px;height:21px;border:1px solid white;border-radius:50%;font-size:10px;display:grid;place-items:center;z-index:2}
+.vtitle{font-weight:bold;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vsub{font-size:11px;color:#999;margin-top:5px}
+.rowcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.metricline{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+.chart{height:180px;display:flex;align-items:end;gap:6px;padding:15px 3px 0;border-bottom:1px solid #555}
+.bar{flex:1;background:#3ea6ff;border-radius:4px 4px 0 0;min-width:3px}
+.chartlabels{display:flex;justify-content:space-between;color:#888;font-size:11px;margin-top:8px}
+.comment{padding:15px 0;border-bottom:1px solid var(--line)}
+.commenttop{display:flex;align-items:center;gap:11px}
+.comment p{font-size:14px;margin:9px 0}
+.comment small{color:#999}
+.commentactions{display:flex;gap:8px;margin-top:10px}
+.field{display:flex;flex-direction:column;gap:7px;margin:13px 0}
+.field label{font-size:13px;color:#bbb}
+.field input,.field textarea,.field select{width:100%}
+.field textarea{min-height:90px}
+.modal{position:fixed;inset:0;background:#000b;z-index:10;display:none;align-items:center;justify-content:center;padding:14px}
+.modal.show{display:flex}
+.modalbox{background:#202020;border:1px solid #444;border-radius:14px;padding:21px;width:min(550px,100%);max-height:90vh;overflow:auto}
+.modalhead{display:flex;justify-content:space-between;align-items:center}
+.modalhead h2{margin:0}
+.close{background:none;border:0;color:white;font-size:26px}
+.hidden{display:none!important}
+.pill{border:1px solid #555;border-radius:20px;padding:5px 10px;color:#ccc;font-size:11px}
+.empty{padding:35px;text-align:center;color:#999}
+.verified{display:inline-grid;place-items:center;width:16px;height:16px;background:#3ea6ff;color:#111;border-radius:50%;font-size:11px;font-weight:bold;margin-left:5px;vertical-align:middle}
+@media(max-width:850px){.sidebar{width:65px;padding:12px 6px}.sideitem{justify-content:center;padding:13px 4px}.sideitem span,.sideheading{display:none}.main{padding:22px 15px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.top{padding:0 9px;gap:9px}.brand{font-size:15px}.search{width:auto;flex:1}.search input{min-width:0}.search button{padding:0 9px}.main{padding:19px 11px}.stat{padding:12px}.stat .number{font-size:21px}.rowcards{grid-template-columns:1fr}.thumb{width:90px;height:55px}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="brand"><div class="logo">▶</div>YouTube Studio</div>
+ <div class="search"><input id="globalSearch" placeholder="Search across your channel"><button onclick="searchContent()">⌕</button></div>
+ <button class="btn small" onclick="showPage('content')">＋ Create</button>
+ <div class="avatar" id="topAvatar"></div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+ <div style="display:flex;align-items:center;gap:12px;padding:5px 12px 20px">
+  <div class="avatar" id="sideAvatar"></div>
+  <div id="sideName" style="font-size:13px;font-weight:bold"></div>
+ </div>
+ <div class="sideitem active" data-page="dashboard" onclick="showPage('dashboard')">▦ <span>Dashboard</span></div>
+ <div class="sideitem" data-page="content" onclick="showPage('content')">▣ <span>Content</span></div>
+ <div class="sideitem" data-page="analytics" onclick="showPage('analytics')">▥ <span>Analytics</span></div>
+ <div class="sideitem" data-page="comments" onclick="showPage('comments')">▤ <span>Comments</span></div>
+ <div class="sideitem" data-page="subtitles" onclick="showPage('subtitles')">▣ <span>Subtitles</span></div>
+ <div class="sideitem" data-page="copyright" onclick="showPage('copyright')">© <span>Copyright</span></div>
+ <div class="sideitem" data-page="earn" onclick="showPage('earn')">$ <span>Earn</span></div>
+ <div class="sideheading">CHANNEL</div>
+ <div class="sideitem" data-page="customization" onclick="showPage('customization')">☷ <span>Customization</span></div>
+ <div class="sideitem" data-page="settings" onclick="showPage('settings')">⚙ <span>Settings</span></div>
+</aside>
+
+<main class="main">
+<section id="page-dashboard">
+ <h1>Channel dashboard</h1>
+ <div class="grid" id="dashboardStats"></div>
+ <div class="rowcards">
+  <div class="panel"><div style="display:flex;justify-content:space-between"><b>Channel analytics</b><span class="pill">Overview</span></div><div class="chart" id="dashboardChart"></div><div class="chartlabels"><span>Past 28 days</span><span>Today</span></div></div>
+  <div class="panel"><b>Top videos</b><div id="topVideos"></div></div>
+ </div>
+ <div class="panel"><b>Recent activity</b><p class="muted" id="recentActivity"></p></div>
+</section>
+
+<section id="page-content" class="hidden">
+ <h1>Channel content</h1>
+ <div class="toolbar"><input id="videoSearch" placeholder="Search videos..." oninput="renderVideos()"><select id="videoSort" onchange="renderVideos()"><option value="date">Newest</option><option value="views">Most views</option><option value="likes">Most likes</option><option value="comments">Most comments</option><option value="revenue">Most revenue</option></select><button class="btn red" onclick="addVideo()">＋ Create video</button></div>
+ <div class="panel" style="padding:0"><div class="tablewrap"><table><thead><tr><th>Video</th><th>Visibility</th><th>Date</th><th>Views</th><th>Comments</th><th>Likes</th><th>Revenue</th></tr></thead><tbody id="videoRows"></tbody></table></div><div style="padding:14px" class="muted" id="videoCount"></div></div>
+</section>
+
+<section id="page-analytics" class="hidden">
+ <h1>Channel analytics</h1><div class="grid" id="analyticsStats"></div>
+ <div class="panel"><b>Views over time</b><div class="chart" id="analyticsChart"></div><div class="chartlabels"><span>Past 28 days</span><span>Today</span></div></div>
+ <div class="rowcards"><div class="panel"><b>Top videos</b><div id="analyticsTop"></div></div><div class="panel"><b>Engagement</b><div id="engagement"></div></div></div>
+</section>
+
+<section id="page-comments" class="hidden">
+ <h1>Comments</h1>
+ <div class="toolbar"><input id="commentSearch" placeholder="Search comments..." oninput="renderComments()"><select id="commentFilter" onchange="renderComments()"><option value="all">All comments</option><option value="replied">Replied</option><option value="unreplied">Not replied</option></select></div>
+ <div class="panel"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b id="commentTotal">73,879 comments</b><span class="muted">25 comments per page</span></div><div id="commentList"></div><div class="toolbar"><button class="btn" onclick="changeCommentPage(-1)">Previous</button><span id="commentPageLabel" class="muted"></span><button class="btn" onclick="changeCommentPage(1)">Next</button></div></div>
+</section>
+
+<section id="page-subtitles" class="hidden"><h1>Subtitles</h1><div class="panel"><b>Video subtitles</b><div id="subtitleList"></div></div></section>
+<section id="page-copyright" class="hidden"><h1>Copyright</h1><div class="panel">No copyright issues have been added to this workspace.</div></section>
+<section id="page-earn" class="hidden"><h1>Earn</h1><div class="grid" id="earnStats"></div><div class="panel"><b>Revenue by video</b><div id="revenueDetails"></div></div></section>
+
+<section id="page-customization" class="hidden">
+ <h1>Channel customization</h1>
+ <div class="panel">
+  <h2>Channel profile</h2>
+  <div class="field"><label>Channel name</label><input id="channelName"></div>
+  <div class="field"><label>Channel handle</label><input id="channelHandle"></div>
+  <div class="field"><label>Profile picture initials</label><input id="channelAvatar" maxlength="3"></div>
+  <div class="field"><label>Description</label><textarea id="channelDescription"></textarea></div>
+  <div class="field"><label>Show owner verification checkmark</label><select id="verified"><option value="false">Off</option><option value="true">On</option></select></div>
+  <button class="btn red" onclick="saveProfile()">Save profile</button>
+ </div>
+</section>
+
+<section id="page-settings" class="hidden">
+ <h1>Settings</h1>
+ <div class="panel">
+  <h2>Channel statistics</h2>
+  <div class="field"><label>Subscribers</label><input id="setSubs" type="number"></div>
+  <div class="field"><label>Total channel views</label><input id="setViews" type="number"></div>
+  <div class="field"><label>Watch time hours</label><input id="setWatch" type="number"></div>
+  <div class="field"><label>Estimated revenue</label><input id="setRevenue" type="number" step=".01"></div>
+  <button class="btn red" onclick="saveStats()">Save statistics</button>
+ </div>
+ <div class="panel"><h2>Backup</h2><button class="btn" onclick="exportData()">Export backup</button> <button class="btn" onclick="resetData()">Reset data</button></div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="editModal"><div class="modalbox">
+ <div class="modalhead"><h2>Edit video</h2><button class="close" onclick="closeModal()">×</button></div>
+ <input type="hidden" id="editId">
+ <div class="field"><label>Title</label><input id="editTitle"></div>
+ <div class="field"><label>Description</label><textarea id="editDescription"></textarea></div>
+ <div class="field"><label>Visibility</label><select id="editVisibility"><option>Public</option><option>Unlisted</option><option>Private</option></select></div>
+ <div class="field"><label>Views</label><input id="editViews" type="number"></div>
+ <div class="field"><label>Likes</label><input id="editLikes" type="number"></div>
+ <div class="field"><label>Dislikes</label><input id="editDislikes" type="number"></div>
+ <div class="field"><label>Comments</label><input id="editComments" type="number"></div>
+ <div class="field"><label>Watch time</label><input id="editWatch" type="number"></div>
+ <div class="field"><label>Revenue</label><input id="editRevenue" type="number" step=".01"></div>
+ <button class="btn red" onclick="saveVideo()">Save changes</button> <button class="btn" onclick="closeModal()">Cancel</button>
+</div></div>
+
+<script>
+const KEY="studio_73879_v2";
+const COMMENT_COUNT=73879;
+const games=[
+["Minecraft","#174c2d","#58a64b"],["Roblox","#173f80","#3988d8"],["Fortnite","#182c50","#4c9be8"],["GTA V","#234b31","#8db34c"],["Call of Duty","#30291e","#98784b"],["Counter-Strike 2","#43331f","#c28c36"],["Valorant","#591d32","#c34d67"],["Rocket League","#164c72","#38a5d6"],["Apex Legends","#4b211e","#d95a44"],["Geometry Dash","#311b55","#a54ce1"],["Brawl Stars","#5b3717","#d79b37"],["Terraria","#254c30","#66a75c"],["Among Us","#54232b","#db5865"],["Rainbow Six Siege","#263b50","#6b9cc1"],["The Forest","#283e29","#80a36a"],["Overwatch 2","#49331c","#e1a84b"]
+];
+const titleBits=["Ranked Gameplay","Funny Moments","First Time Playing","Insane Match","New Update","Best Moments","Challenge Run","Epic Highlights","Full Gameplay","Winning Streak","Secret Location","New Strategy","Road to Victory","Testing New Settings"];
+const usernames=["PixelRyder","ShadowPlayz","NovaGaming","BlockMaster","FrostByte","RoguePlayer","Vortex","NightShift","HyperClips","GameStorm","EchoGaming","RiftRunner","StarPlayer","CloudRunner","TurboGamer"];
+const commentTexts=["This was awesome!","Great video, keep it up!","That ending was crazy.","What game is this?","I love this gameplay.","Please make another one.","The last part was my favorite.","Been watching your videos for a while.","Nice work!","Upload more soon!","This deserves more views.","I learned something new.","That was a clean play.","Which settings do you use?","More videos like this!"];
+const colors=["#9b59b6","#2980b9","#16a085","#c0392b","#d35400","#7f8c8d","#8e44ad","#2c3e50","#27ae60","#e84393","#6c5ce7","#00a8a8"];
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const fmt=n=>Number(n||0).toLocaleString("en-US");
+const money=n=>"$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function avatarColor(seed){let n=0;for(let i=0;i<String(seed).length;i++)n=(n*31+String(seed).charCodeAt(i))>>>0;return colors[n%colors.length]}
+function makeAvatar(name,seed){return `<div class="avatar" style="background:${avatarColor(seed)}">${safe(name.slice(0,1).toUpperCase())}</div>`}
+function makeVideo(i){
+ let g=games[i%games.length],views=rand(200,850000),likes=rand(5,Math.max(10,Math.floor(views*.09)));
+ return {id:"v"+i,title:g[0]+" "+titleBits[(i*7)%titleBits.length]+" #"+(i+1),game:g[0],description:"Gaming video featuring "+g[0]+".",visibility:"Public",date:Date.now()-i*86400000,views,likes,dislikes:rand(0,Math.floor(likes*.08)),comments:rand(5,Math.floor(views*.03)+10),watch:Math.round(views*rand(2,8)/60),revenue:Number((views*rand(1,5)/1000).toFixed(2))};
+}
+function makeComment(index){
+ let user=usernames[index%usernames.length]+rand(10,9999);
+ return {id:"c"+index,user,text:commentTexts[(index*7)%commentTexts.length],videoId:"v"+(index%367),date:Date.now()-rand(0,1000000000),reply:"",pfpColor:avatarColor(user+index),pfpLetter:user[0].toUpperCase()};
+}
+function seed(){
+ let d={profile:{name:"Your Channel",handle:"@yourchannel",avatar:"Y",description:"Welcome to my channel.",verified:false},stats:{subs:12500,views:0,watch:0,revenue:0},videos:[],commentEdits:{}};
+ d.videos=[
+ {id:"starter1",title:"My First Video",game:"Minecraft",description:"My first video on this channel.",visibility:"Public",date:Date.now()-86400000,views:12500,likes:950,dislikes:12,comments:120,watch:820,revenue:18.75},
+ {id:"starter2",title:"Behind the Scenes",game:"Roblox",description:"A look behind the scenes.",visibility:"Public",date:Date.now()-172800000,views:8300,likes:640,dislikes:8,comments:85,watch:510,revenue:12.45},
+ {id:"starter3",title:"New Update!",game:"Fortnite",description:"Checking out the latest update.",visibility:"Public",date:Date.now()-259200000,views:19200,likes:1500,dislikes:15,comments:205,watch:1300,revenue:32.10}
+ ];
+ for(let i=3;i<367;i++)d.videos.push(makeVideo(i));
+ d.stats.views=d.videos.reduce((s,v)=>s+v.views,0);
+ d.stats.watch=d.videos.reduce((s,v)=>s+v.watch,0);
+ d.stats.revenue=d.videos.reduce((s,v)=>s+v.revenue,0);
+ return d;
+}
+let data;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){alert("Your browser storage is full. Export a backup before adding more saved changes.")}}
+function load(){
+ try{data=JSON.parse(localStorage.getItem(KEY))}catch(e){data=null}
+ if(!data||!Array.isArray(data.videos))data=seed();
+ data.profile??={name:"Your Channel",handle:"@yourchannel",avatar:"Y",description:"",verified:false};
+ data.stats??={subs:0,views:0,watch:0,revenue:0};
+ data.commentEdits??={};
+ if(data.videos.length<367)for(let i=data.videos.length;i<367;i++)data.videos.push(makeVideo(i));
+ data.videos.forEach(v=>{v.likes??=0;v.dislikes??=0;v.comments??=0;v.watch??=0;v.revenue??=0;v.visibility??="Public";});
+ save();
+}
+function total(k){return data.videos.reduce((s,v)=>s+Number(v[k]||0),0)}
+function stats(){return {subs:data.stats.subs,views:data.stats.views||total("views"),watch:data.stats.watch||total("watch"),revenue:data.stats.revenue||total("revenue"),likes:total("likes"),dislikes:total("dislikes"),comments:COMMENT_COUNT}}
+function card(label,value,sub){return `<div class="stat"><div class="label">${label}</div><div class="number">${value}</div><div class="sub">${sub}</div></div>`}
+function chart(){return Array.from({length:28},()=>`<div class="bar" style="height:${rand(10,100)}%"></div>`).join("")}
+function ownerName(){return `${safe(data.profile.name)}${data.profile.verified?'<span class="verified" title="Owner badge">✓</span>':""}`}
+function updateProfileUI(){
+ document.getElementById("topAvatar").outerHTML=makeAvatar(data.profile.avatar,"owner");
+ document.getElementById("sideAvatar").outerHTML=makeAvatar(data.profile.avatar,"owner");
+ document.getElementById("sideName").innerHTML=ownerName();
+}
+function showPage(p){
+ document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
+ document.getElementById("page-"+p).classList.remove("hidden");
+ document.querySelectorAll(".sideitem").forEach(x=>x.classList.toggle("active",x.dataset.page===p));
+ if(p==="dashboard")renderDashboard();
+ if(p==="content")renderVideos();
+ if(p==="analytics")renderAnalytics();
+ if(p==="comments")renderComments();
+ if(p==="earn")renderEarn();
+ if(p==="settings")fillSettings();
+ if(p==="customization")fillProfile();
+ if(p==="subtitles")renderSubtitles();
+}
+function renderDashboard(){
+ let s=stats();
+ document.getElementById("dashboardStats").innerHTML=card("Subscribers",fmt(s.subs),"Channel subscribers")+card("Views",fmt(s.views),"Total channel views")+card("Watch time",fmt(s.watch)+" hrs","Hours watched")+card("Estimated revenue",money(s.revenue),"Estimated earnings");
+ document.getElementById("dashboardChart").innerHTML=chart();
+ let top=[...data.videos].sort((a,b)=>b.views-a.views).slice(0,5);
+ document.getElementById("topVideos").innerHTML=top.map(v=>`<div class="metricline"><span>${safe(v.title)}</span><b>${fmt(v.views)}</b></div>`).join("");
+ document.getElementById("recentActivity").textContent=data.videos.length+" videos and "+fmt(COMMENT_COUNT)+" generated comments in this channel workspace.";
+}
+function gameTheme(game){return games.find(g=>g[0]===game)||games[0]}
+function thumbnail(v){
+ let g=gameTheme(v.game),letter=(data.profile.avatar||"Y").slice(0,1);
+ return `<div class="thumb" style="background:linear-gradient(135deg,${g[1]},${g[2]})"><span class="gameword">${safe(g[0].toUpperCase())}</span><span class="pfp" style="background:${avatarColor(data.profile.name)}">${safe(letter)}</span></div>`;
+}
+function renderVideos(){
+ let q=(document.getElementById("videoSearch")?.value||"").toLowerCase(),sort=document.getElementById("videoSort")?.value||"date";
+ let list=data.videos.filter(v=>(v.title+" "+v.game).toLowerCase().includes(q));
+ list.sort((a,b)=>sort==="date"?b.date-a.date:(b[sort]||0)-(a[sort]||0));
+ document.getElementById("videoRows").innerHTML=list.map(v=>`<tr data-video-id="${safe(v.id)}"><td><div class="video">${thumbnail(v)}<div><div class="vtitle">${safe(v.title)}</div><div class="vsub">${safe(v.description)}</div></div></div></td><td>${safe(v.visibility)}</td><td>${new Date(v.date).toLocaleDateString()}</td><td>${fmt(v.views)}</td><td>${fmt(v.comments)}</td><td>${fmt(v.likes)}</td><td>${money(v.revenue)}</td></tr>`).join("");
+ document.getElementById("videoCount").textContent=fmt(list.length)+" videos";
+}
+function openVideo(id){
+ let v=data.videos.find(x=>x.id===id);if(!v)return;
+ document.getElementById("editId").value=v.id;
+ ["title","description","visibility","views","likes","dislikes","comments","watch","revenue"].forEach(k=>document.getElementById("edit"+k[0].toUpperCase()+k.slice(1)).value=v[k]??"");
+ document.getElementById("editModal").classList.add("show");
+}
+function closeModal(){document.getElementById("editModal").classList.remove("show")}
+function saveVideo(){
+ let v=data.videos.find(x=>x.id===document.getElementById("editId").value);if(!v)return;
+ ["title","description","visibility"].forEach(k=>v[k]=document.getElementById("edit"+k[0].toUpperCase()+k.slice(1)).value);
+ ["views","likes","dislikes","comments","watch","revenue"].forEach(k=>v[k]=Math.max(0,Number(document.getElementById("edit"+k[0].toUpperCase()+k.slice(1)).value)||0));
+ save();closeModal();renderVideos();renderDashboard();
+}
+function addVideo(){
+ let v=makeVideo(Date.now());v.id="custom"+Date.now();v.title="New gaming video";v.views=v.likes=v.dislikes=v.comments=v.watch=v.revenue=0;data.videos.unshift(v);save();renderVideos();openVideo(v.id);
+}
+let commentPage=0;
+function getComment(index){
+ let edited=data.commentEdits[index];
+ if(edited)return edited;
+ return makeComment(index);
+}
+function renderComments(){
+ let q=(document.getElementById("commentSearch")?.value||"").toLowerCase();
+ let filter=document.getElementById("commentFilter")?.value||"all";
+ let start=commentPage*25,items=[];
+ // Search checks generated comments in manageable batches.
+ if(q){
+  let found=0;
+  for(let i=0;i<COMMENT_COUNT&&found<25;i++){
+   let c=getComment(i);
+   if((c.user+" "+c.text+" "+(c.reply||"")).toLowerCase().includes(q)&&(filter==="all"||(filter==="replied"?!!c.reply:!c.reply))){if(found>=start)items.push({...c,index:i});found++;}
+  }
+  window.filteredCommentCount=found;
+ }else{
+  for(let i=start;i<Math.min(start+25,COMMENT_COUNT);i++){
+   let c=getComment(i);
+   if(filter==="all"||(filter==="replied"?!!c.reply:!c.reply))items.push({...c,index:i});
+  }
+ }
+ let count=q?(window.filteredCommentCount||0):COMMENT_COUNT;
+ document.getElementById("commentTotal").textContent=fmt(count)+" comments";
+ let pages=Math.max(1,Math.ceil(count/25));
+ commentPage=Math.min(commentPage,pages-1);
+ document.getElementById("commentPageLabel").textContent="Page "+(commentPage+1)+" of "+pages;
+ document.getElementById("commentList").innerHTML=items.map(c=>`<div class="comment">
+ <div class="commenttop"><div class="avatar" style="background:${c.pfpColor||avatarColor(c.user+c.index)}">${safe(c.pfpLetter||c.user[0])}</div><div><b>${safe(c.user)}</b><br><small>${new Date(c.date).toLocaleDateString()}</small></div></div>
+ <p>${safe(c.text)}</p><small>Video: ${safe(data.videos.find(v=>v.id===c.videoId)?.title||"Channel video")}</small>
+ ${c.reply?`<p><b>${ownerName()}:</b> ${safe(c.reply)}</p>`:""}
+ <div class="commentactions"><button class="btn small" onclick="replyComment(${c.index})">${c.reply?"Edit reply":"Reply"}</button><button class="btn small" onclick="removeComment(${c.index})">Remove</button></div></div>`).join("")||'<div class="empty">No comments found on this page.</div>';
+}
+function changeCommentPage(n){commentPage=Math.max(0,commentPage+n);renderComments()}
+function replyComment(index){
+ let c=getComment(index),reply=prompt("Write your reply:",c.reply||"");if(reply===null)return;
+ c.reply=reply;data.commentEdits[index]=c;save();renderComments();
+}
+function removeComment(index){
+ if(!confirm("Remove this comment?"))return;
+ data.commentEdits[index]={...getComment(index),deleted:true};
+ // Removed comments are hidden from the display.
+ save();renderComments();
+}
+function renderAnalytics(){
+ let s=stats();
+ document.getElementById("analyticsStats").innerHTML=card("Views",fmt(s.views),"Channel views")+card("Likes",fmt(s.likes),"Video likes")+card("Comments",fmt(s.comments),"Generated comments")+card("Watch time",fmt(s.watch)+" hrs","Hours watched");
+ document.getElementById("analyticsChart").innerHTML=chart();
+ let top=[...data.videos].sort((a,b)=>b.views-a.views).slice(0,8);
+ document.getElementById("analyticsTop").innerHTML=top.map(v=>`<div class="metricline"><span>${safe(v.title)}</span><b>${fmt(v.views)}</b></div>`).join("");
+ document.getElementById("engagement").innerHTML=`<div class="metricline"><span>Total likes</span><b>${fmt(s.likes)}</b></div><div class="metricline"><span>Total dislikes</span><b>${fmt(s.dislikes)}</b></div><div class="metricline"><span>Videos</span><b>${fmt(data.videos.length)}</b></div><div class="metricline"><span>Like rate</span><b>${s.views?(s.likes/s.views*100).toFixed(2):"0"}%</b></div>`;
+}
+function renderEarn(){
+ let s=stats();
+ document.getElementById("earnStats").innerHTML=card("Estimated revenue",money(s.revenue),"Channel estimate")+card("Views",fmt(s.views),"Channel views")+card("Subscribers",fmt(s.subs),"Subscribers")+card("Videos",fmt(data.videos.length),"Uploaded videos");
+ document.getElementById("revenueDetails").innerHTML=[...data.videos].sort((a,b)=>b.revenue-a.revenue).slice(0,15).map(v=>`<div class="metricline"><span>${safe(v.title)}</span><b>${money(v.revenue)}</b></div>`).join("");
+}
+function renderSubtitles(){document.getElementById("subtitleList").innerHTML=data.videos.slice(0,35).map(v=>`<div class="metricline"><span>${safe(v.title)}</span><span class="muted">No subtitles added</span></div>`).join("")}
+function fillSettings(){let s=stats();setSubs.value=s.subs;setViews.value=s.views;setWatch.value=s.watch;setRevenue.value=s.revenue}
+function saveStats(){
+ data.stats.subs=Math.max(0,Number(setSubs.value)||0);data.stats.views=Math.max(0,Number(setViews.value)||0);data.stats.watch=Math.max(0,Number(setWatch.value)||0);data.stats.revenue=Math.max(0,Number(setRevenue.value)||0);save();renderDashboard();alert("Statistics saved.");
+}
+function fillProfile(){
+ channelName.value=data.profile.name;channelHandle.value=data.profile.handle;channelAvatar.value=data.profile.avatar;channelDescription.value=data.profile.description;verified.value=String(!!data.profile.verified);
+}
+function saveProfile(){
+ data.profile.name=channelName.value.trim()||"Your Channel";data.profile.handle=channelHandle.value.trim()||"@yourchannel";data.profile.avatar=channelAvatar.value.trim()||"Y";data.profile.description=channelDescription.value;data.profile.verified=verified.value==="true";save();updateProfileUI();renderDashboard();alert("Profile saved. The owner checkmark has been updated.");
+}
+function searchContent(){showPage("content");videoSearch.value=globalSearch.value;renderVideos()}
+function exportData(){
+ let blob=new Blob([JSON.stringify(data)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="channel-backup.json";a.click();URL.revokeObjectURL(a.href);
+}
+function resetData(){if(!confirm("Reset all saved channel data?"))return;localStorage.removeItem(KEY);location.reload()}
+document.addEventListener("dblclick",e=>{let row=e.target.closest("[data-video-id]");if(row)openVideo(row.dataset.videoId)});
+let lastTouch={id:"",time:0};
+document.addEventListener("touchend",e=>{
+ let row=e.target.closest("[data-video-id]");if(!row)return;
+ let id=row.dataset.videoId,now=Date.now();
+ if(lastTouch.id===id&&now-lastTouch.time<400){e.preventDefault();openVideo(id);lastTouch={id:"",time:0}}
+ else lastTouch={id,time:now};
+},{passive:false});
+load();updateProfileUI();renderDashboard();
+</script>
+</body>
+</html>
